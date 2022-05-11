@@ -1,8 +1,7 @@
 from django.test import TestCase
+from testapp.models import Article, Comment, Payment
 
 from recent_objects.recent_objects import RecentObjects
-
-from testapp.models import Article, Comment, Payment
 
 
 ro = RecentObjects(
@@ -24,6 +23,7 @@ ro = RecentObjects(
         },
     ]
 )
+
 
 class RecentObjectsTest(TestCase):
     def test_query(self):
