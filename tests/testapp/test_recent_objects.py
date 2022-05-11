@@ -84,7 +84,6 @@ class RecentObjectsTest(TestCase):
             )
 
     def test_filter(self):
-
         a = Article.objects.create(created_at=now() - dt.timedelta(seconds=300))
         c = Comment.objects.create(created_at=now() - dt.timedelta(seconds=200))
         p = Payment.objects.create(created_at=now() - dt.timedelta(seconds=100))
@@ -108,8 +107,11 @@ class RecentObjectsTest(TestCase):
             ]
         )
 
-        # Fetch a filtered subset only
         self.assertEqual(
             [obj["object"] for obj in ro.materialize(ro.union())],
             [p, c, a],
+        )
+        self.assertEqual(
+            [obj["object"] for obj in ro.materialize(ro.union()[:2])],
+            [p, c],
         )
