@@ -6,7 +6,6 @@ from django.db import models
 class Article(models.Model):
     title = models.CharField(max_length=100)
     created_at = models.DateTimeField()
-    published_on = models.DateField()
 
 
 class Comment(models.Model):
