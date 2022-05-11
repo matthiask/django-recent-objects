@@ -48,6 +48,7 @@ Usage:
           "pk": 42,
           "object": Comment(),
       },
+      ...
     ]
 
 You can optionally specify the ``type`` yourself in the recent objects spec

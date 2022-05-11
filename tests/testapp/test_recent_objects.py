@@ -13,7 +13,6 @@ ro = RecentObjects(
             "date_field": "created_at",
         },
         {
-            "type": "comment",
             "queryset": Comment.objects.all(),
             "date_field": "created_at",
         },
@@ -33,28 +32,35 @@ class RecentObjectsTest(TestCase):
         a = Article.objects.create(created_at=now())
         c = Comment.objects.create(created_at=now())
         p = Payment.objects.create(created_at=now())
+        a2 = Article.objects.create(created_at=now())
 
         with self.assertNumQueries(4):
             # 1 * count + 1 * union + 2 * materialize
             first_page = ro.page(paginate_by=2, page=1)
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             # 1 * count + 1 * union + 1 * materialize
             second_page = ro.page(paginate_by=2, page=2)
 
         self.assertEqual(
             [obj["object"] for obj in first_page],
-            [p, c],
+            [a2, p],
         )
         self.assertEqual(
             [obj["object"] for obj in second_page],
-            [a],
+            [c, a],
         )
 
-        with self.assertNumQueries(4):
-            # 1 * union + 3 * materialize
+        with self.assertNumQueries(5):
+            # 1 * count + 1 * union + 3 * materialize
             self.assertEqual(
-                ro.materialize(ro.union()),
+                ro.page(paginate_by=99, page=1),
                 [
+                    {
+                        "type": "article",
+                        "date": a2.created_at,
+                        "pk": a2.pk,
+                        "object": a2,
+                    },
                     {
                         "type": "testapp.payment",
                         "date": p.created_at,
@@ -62,7 +68,7 @@ class RecentObjectsTest(TestCase):
                         "object": p,
                     },
                     {
-                        "type": "comment",
+                        "type": "testapp.comment",
                         "date": c.created_at,
                         "pk": c.pk,
                         "object": c,
