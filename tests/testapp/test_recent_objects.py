@@ -1,3 +1,5 @@
+import datetime as dt
+
 from django.test import TestCase
 from django.utils.timezone import now
 from testapp.models import Article, Comment, Payment
@@ -5,34 +7,33 @@ from testapp.models import Article, Comment, Payment
 from recent_objects.recent_objects import RecentObjects
 
 
-ro = RecentObjects(
-    [
-        {
-            "type": "article",
-            "queryset": Article.objects.all(),
-            "date_field": "created_at",
-        },
-        {
-            "queryset": Comment.objects.all(),
-            "date_field": "created_at",
-        },
-        {
-            "queryset": Payment.objects.all(),
-            "date_field": "created_at",
-        },
-    ]
-)
-
-
 class RecentObjectsTest(TestCase):
     def test_query(self):
+        ro = RecentObjects(
+            [
+                {
+                    "type": "article",
+                    "queryset": Article.objects.all(),
+                    "date_field": "created_at",
+                },
+                {
+                    "queryset": Comment.objects.all(),
+                    "date_field": "created_at",
+                },
+                {
+                    "queryset": Payment.objects.all(),
+                    "date_field": "created_at",
+                },
+            ]
+        )
+
         with self.assertNumQueries(1):
             self.assertEqual(ro.page(paginate_by=10, page=1), [])
 
-        a = Article.objects.create(created_at=now())
-        c = Comment.objects.create(created_at=now())
-        p = Payment.objects.create(created_at=now())
-        a2 = Article.objects.create(created_at=now())
+        a = Article.objects.create(created_at=now() - dt.timedelta(seconds=300))
+        c = Comment.objects.create(created_at=now() - dt.timedelta(seconds=200))
+        p = Payment.objects.create(created_at=now() - dt.timedelta(seconds=100))
+        a2 = Article.objects.create(created_at=now() - dt.timedelta(seconds=0))
 
         with self.assertNumQueries(4):
             # 1 * count + 1 * union + 2 * materialize
@@ -81,3 +82,34 @@ class RecentObjectsTest(TestCase):
                     },
                 ],
             )
+
+    def test_filter(self):
+
+        a = Article.objects.create(created_at=now() - dt.timedelta(seconds=300))
+        c = Comment.objects.create(created_at=now() - dt.timedelta(seconds=200))
+        p = Payment.objects.create(created_at=now() - dt.timedelta(seconds=100))
+        Article.objects.create(created_at=now() - dt.timedelta(seconds=0))
+
+        cutoff = now() - dt.timedelta(seconds=50)
+        ro = RecentObjects(
+            [
+                {
+                    "queryset": Article.objects.filter(created_at__lte=cutoff),
+                    "date_field": "created_at",
+                },
+                {
+                    "queryset": Comment.objects.filter(created_at__lte=cutoff),
+                    "date_field": "created_at",
+                },
+                {
+                    "queryset": Payment.objects.filter(created_at__lte=cutoff),
+                    "date_field": "created_at",
+                },
+            ]
+        )
+
+        # Fetch a filtered subset only
+        self.assertEqual(
+            [obj["object"] for obj in ro.materialize(ro.union())],
+            [p, c, a],
+        )
