@@ -10,7 +10,12 @@ class RecentObjects:
 
     def __init__(self, querysets_spec):
         self._querysets_spec = [
-            {"pk": spec["queryset"].model._meta.pk} | spec for spec in querysets_spec
+            {
+                "pk": spec["queryset"].model._meta.pk,
+                "type": spec["queryset"].model._meta.label_lower,
+            }
+            | spec
+            for spec in querysets_spec
         ]
         self._pk_to_python_by_type = {
             spec["type"]: spec["pk"].to_python for spec in self._querysets_spec

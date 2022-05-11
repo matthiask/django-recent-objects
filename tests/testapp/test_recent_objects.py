@@ -18,7 +18,6 @@ ro = RecentObjects(
             "date_field": "created_at",
         },
         {
-            "type": "payment",
             "queryset": Payment.objects.all(),
             "date_field": "created_at",
         },
@@ -54,6 +53,25 @@ class RecentObjectsTest(TestCase):
         with self.assertNumQueries(4):
             # 1 * union + 3 * materialize
             self.assertEqual(
-                [obj["object"] for obj in ro.materialize(ro.union())],
-                [p, c, a],
+                ro.materialize(ro.union()),
+                [
+                    {
+                        "type": "testapp.payment",
+                        "date": p.created_at,
+                        "pk": p.pk,
+                        "object": p,
+                    },
+                    {
+                        "type": "comment",
+                        "date": c.created_at,
+                        "pk": c.pk,
+                        "object": c,
+                    },
+                    {
+                        "type": "article",
+                        "date": a.created_at,
+                        "pk": a.pk,
+                        "object": a,
+                    },
+                ],
             )
