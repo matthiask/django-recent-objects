@@ -17,14 +17,17 @@ Usage:
             {
                 "queryset": Article.objects.all(),
                 "date_field": "created_at",
+                # "type": "testapp.article",
             },
             {
                 "queryset": Comment.objects.all(),
                 "date_field": "created_at",
+                # "type": "testapp.comment",
             },
             {
                 "queryset": Payment.objects.all(),
                 "date_field": "created_at",
+                # "type": "testapp.payment",
             },
         ]
     )
