@@ -7,6 +7,8 @@ Change log
 
 .. _Next version: https://github.com/matthiask/django-recent-objects/compare/0.1...main
 
+- Changed the code to use ``UNION ALL`` instead of only ``UNION``.
+
 
 `0.1`_ (2022-05-11)
 ~~~~~~~~~~~~~~~~~~~

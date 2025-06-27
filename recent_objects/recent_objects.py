@@ -32,7 +32,7 @@ class RecentObjects:
             .values("__ro_pk", "__ro_date", "__ro_type")
             for spec in self._querysets_spec
         ]
-        return id_querysets[0].union(*id_querysets[1:]).order_by("-__ro_date")
+        return id_querysets[0].union(*id_querysets[1:], all=True).order_by("-__ro_date")
 
     def materialize(self, id_queryset):
         id_map = defaultdict(set)
